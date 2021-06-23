@@ -20,11 +20,14 @@ export interface FocusErrorProps {
    * Time in ms to execute the focus in the component with the error, by default 100ms.
    */
   focusDelay?: number;
+
+  errorKeys?: string[];
 }
 
 export function FocusError({
   formik: { isSubmitting, touched, isValidating, errors },
   focusDelay = 100,
+  errorKeys = []
 }: FocusErrorProps) {
   useEffect(() => {
     if (isSubmitting && !isValidating) {
@@ -40,20 +43,36 @@ export function FocusError({
         return prev;
       }, [] as string[]);
 
+      const _errorKeys = !errorKeys?.length ? errorNames : errorKeys;
+
       if (errorNames.length && typeof document !== "undefined") {
         let errorElement: HTMLElement | null;
 
-        errorNames.forEach((errorKey) => {
+        _errorKeys.forEach((errorKey) => {
+          if (!errorNames.includes(errorKey)) return;
+
           const selector = `[name="${errorKey}"]`;
           if (!errorElement) {
             errorElement = document.querySelector(selector);
+
+            if (errorElement?.getAttribute("type") === "hidden" && errorElement.tagName?.toLowerCase() === "input") {
+              errorElement = errorElement.parentElement;
+            }
+
             return;
           }
         });
 
         // This is to avoid the other components autofocus when submitting
         setTimeout(() => {
-          errorElement && errorElement.focus();
+          if (errorElement) {
+            errorElement.scrollIntoView({ 
+              behavior: 'auto',
+              block: 'center',
+              inline: 'center' 
+            });
+            errorElement.focus();
+          }
         }, focusDelay);
       }
     }
