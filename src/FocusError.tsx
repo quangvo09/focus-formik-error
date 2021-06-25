@@ -43,7 +43,8 @@ export function FocusError({
         return prev;
       }, [] as string[]);
 
-      const _errorKeys = !errorKeys?.length ? errorNames : errorKeys;
+
+      const _errorKeys = Array.from(new Set([...errorKeys, ...errorNames]))
 
       if (errorNames.length && typeof document !== "undefined") {
         let errorElement: HTMLElement | null;
